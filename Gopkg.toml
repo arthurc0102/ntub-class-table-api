@@ -40,3 +40,6 @@
 [[constraint]]
   name = "github.com/PuerkitoBio/goquery"
   version = "1.4.1"
+
+[metadata.heroku]
+  root-package = "github.com/arthurc0102/ntub-class-table-api"

@@ -9,6 +9,7 @@ func main() {
 	server := gin.Default()
 
 	server.GET("", controllers.Root)
+	server.GET("/docs", controllers.Docs)
 	server.GET("/personal/:id", controllers.PersonalClassTable)
 
 	server.Run()

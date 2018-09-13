@@ -66,7 +66,7 @@ func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, 
 }
 
 // PersonalClassTable service
-func PersonalClassTable(studentID string) (classTable [7]interface{}, errorList []error) {
+func PersonalClassTable(studentID string) (classTable [7][]map[string]string, errorList []error) {
 	var wg sync.WaitGroup
 
 	wg.Add(7)

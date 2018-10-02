@@ -45,7 +45,6 @@ func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, 
 		if name == "" {
 			classTableOfDay = append(classTableOfDay, nil)
 			return
-
 		}
 
 		classInfo := []string{}
@@ -59,6 +58,7 @@ func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, 
 			class[classMapKey[i]] = classInfo[i]
 		}
 
+		class["room"] = strings.Split(class["room"], "<")[0] // 修復一堂課多教師時教室顯示異常
 		classTableOfDay = append(classTableOfDay, class)
 	})
 

@@ -11,7 +11,7 @@ import (
 func PersonalClassTable(c *gin.Context) {
 	id := c.Params.ByName("id")
 
-	classTable, errorList := services.PersonalClassTable(id)
+	classTable, classTime, errorList := services.PersonalClassTable(id)
 	if len(errorList) != 0 {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Can't get classtable for this student ID, please try again later",
@@ -34,5 +34,8 @@ func PersonalClassTable(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, classTable)
+	c.JSON(http.StatusOK, gin.H{
+		"time":  classTime,
+		"class": classTable,
+	})
 }

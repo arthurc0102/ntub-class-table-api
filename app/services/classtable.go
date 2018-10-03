@@ -13,8 +13,8 @@ import (
 
 var classMapKey = []string{"name", "teacher", "room"}
 
-// PersonalClassTableByDay service
-func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, error) {
+// GetPersonalClassTable send request to get class table and return doc
+func GetPersonalClassTable(studentID string, today int) (*goquery.Document, error) {
 	client := &http.Client{}
 	data := url.Values{"StdNo": {studentID}, "today": {fmt.Sprint(today)}}
 
@@ -37,8 +37,11 @@ func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, 
 		return nil, err
 	}
 
-	var classTableOfDay []map[string]string
+	return doc, nil
+}
 
+// PersonalClassTableByDay service
+func PersonalClassTableByDay(doc *goquery.Document) (classTableOfDay []map[string]string) {
 	doc.Find("td.Stdtd001").Each(func(_ int, s *goquery.Selection) {
 		name := s.Find("a").First().Text()
 
@@ -62,28 +65,60 @@ func PersonalClassTableByDay(studentID string, today int) ([]map[string]string, 
 		classTableOfDay = append(classTableOfDay, class)
 	})
 
-	return classTableOfDay, nil
+	return
+}
+
+// PersonalClassTableTime return time off class
+func PersonalClassTableTime(doc *goquery.Document) []map[string]string {
+	var timeList []map[string]string
+
+	doc.Find("th.Stdth003").Each(func(_ int, s *goquery.Selection) {
+		timeInfoHTML, _ := s.Html()
+		timeInfo := strings.Split(timeInfoHTML, "<br/>")
+
+		if l := len(timeInfo); l < 3 {
+			for i := 0; i < 3-l; i++ {
+				timeInfo = append(timeInfo, "")
+			}
+		}
+
+		timeList = append(timeList, map[string]string{
+			"class_no": timeInfo[0],
+			"start_at": timeInfo[1],
+			"end_at":   timeInfo[2],
+		})
+	})
+
+	return timeList
 }
 
 // PersonalClassTable service
-func PersonalClassTable(studentID string) (classTable [7][]map[string]string, errorList []error) {
+func PersonalClassTable(studentID string) ([7][]map[string]string, []map[string]string, []error) {
 	var wg sync.WaitGroup
+	var classTable [7][]map[string]string
+	var classTime []map[string]string
+	var errorList []error
 
 	wg.Add(7)
 
 	for i := 1; i < 8; i++ {
 		go func(today int) {
-			classList, err := PersonalClassTableByDay(studentID, today)
-
+			doc, err := GetPersonalClassTable(studentID, today)
 			if err != nil {
 				errorList = append(errorList, err)
+				return
 			}
 
-			classTable[today-1] = classList
+			classTable[today-1] = PersonalClassTableByDay(doc)
+
+			if today == 1 {
+				classTime = PersonalClassTableTime(doc)
+			}
+
 			wg.Done()
 		}(i)
 	}
 
 	wg.Wait()
-	return
+	return classTable, classTime, errorList
 }

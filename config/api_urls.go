@@ -2,6 +2,6 @@ package config
 
 // API urls
 const (
-	Host          = "http://140.131.110.76"
+	Host          = "https://ntcbadm.ntub.edu.tw/"
 	ClassTableURL = Host + "/JMobile_STD/AjaxPage/SRHCUR_Schedule_ajax.aspx"
 )

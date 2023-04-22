@@ -1,27 +1,24 @@
 # Build env
-FROM golang:1.10.3 AS build
+FROM golang:1.18.4 AS build
 
-WORKDIR $GOPATH/src/github.com/arthurc0102/ntub-class-table-api
+WORKDIR /srv
+
 COPY . .
 
-RUN go get -v -u github.com/golang/dep/cmd/dep
-RUN dep ensure
+RUN go mod download
 
 # Ref: https://blog.codeship.com/building-minimal-docker-containers-for-go-applications/
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main.out
-
-RUN cp ./main.out /
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server .
 
 # Run env
-FROM alpine:3.8
+FROM alpine:3
 
-WORKDIR /app
+COPY --from=build /srv/server /
 
-COPY --from=build /main.out .
+ENV GIN_MODE=release
+
 EXPOSE 8080
 
-# COPY ./docker-entrypoint.sh /usr/local/bin/
-# RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-# ENTRYPOINT [ "docker-entrypoint.sh" ]
+USER daemon
 
-CMD [ "./main.out" ]
+CMD [ "/server" ]
